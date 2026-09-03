@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PublicGameState } from '@/lib/game-types';
 
-export function useGame(code: string, withParticipant = false) {
+export function useGame(
+  code: string,
+  withParticipant = false,
+  hostCode = '',
+) {
   const [state, setState] = useState<PublicGameState | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,7 +20,10 @@ export function useGame(code: string, withParticipant = false) {
         : null;
       const response = await fetch(`/api/game/${encodeURIComponent(code)}`, {
         cache: 'no-store',
-        headers: token ? { 'x-participant-token': token } : undefined,
+        headers: {
+          ...(token ? { 'x-participant-token': token } : {}),
+          ...(hostCode ? { 'x-host-code': hostCode } : {}),
+        },
       });
       const payload = (await response.json()) as PublicGameState & {
         error?: string;
@@ -36,7 +43,7 @@ export function useGame(code: string, withParticipant = false) {
         setLoading(false);
       }
     }
-  }, [code, withParticipant]);
+  }, [code, hostCode, withParticipant]);
 
   useEffect(() => {
     mounted.current = true;

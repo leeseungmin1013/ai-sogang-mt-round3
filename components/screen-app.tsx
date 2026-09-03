@@ -207,10 +207,10 @@ export function ScreenApp({ code }: { code: string }) {
 
       {state.status === 'ANSWER_REVEALED' && state.answer && (
         <section className="screen-center">
-          <div className="relative overflow-hidden rounded-[2vw] border border-primary/40 bg-[linear-gradient(120deg,rgba(255,111,97,.2),rgba(139,92,246,.13)_65%,rgba(217,255,82,.08))] px-[2vw] py-[1.5vw] shadow-[0_0_5vw_rgba(255,111,97,.12)]">
-            <div className="absolute -right-[5vw] -top-[7vw] size-[18vw] rounded-full bg-primary/15 blur-[4vw]" />
+          <div className="relative overflow-hidden rounded-[2vw] border border-cyan-300/40 bg-[linear-gradient(120deg,rgba(34,211,238,.18),rgba(59,130,246,.16)_58%,rgba(139,92,246,.1))] px-[2vw] py-[1.5vw] shadow-[0_0_5vw_rgba(34,211,238,.13)]">
+            <div className="absolute -right-[5vw] -top-[7vw] size-[18vw] rounded-full bg-cyan-300/15 blur-[4vw]" />
             <div className="relative flex items-center justify-between">
-              <p className="flex items-center gap-[.6vw] text-[1vw] font-black tracking-[.15em] text-primary">
+              <p className="flex items-center gap-[.6vw] text-[1vw] font-black tracking-[.15em] text-cyan-200">
                 <Sparkles className="size-[1.2vw]" /> AI FINAL ANSWER
               </p>
               <div className="flex items-center gap-[.55vw]">
@@ -223,7 +223,7 @@ export function ScreenApp({ code }: { code: string }) {
               </div>
             </div>
             <div className="relative mt-[1vw] grid grid-cols-[5.6vw_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-[1.4vw]">
-              <span className="grid size-[5.6vw] place-items-center rounded-[1.5vw] bg-primary text-[3vw] font-black leading-none text-primary-foreground shadow-[0_.8vw_2.5vw_rgba(255,111,97,.28)]">
+              <span className="grid size-[5.6vw] place-items-center rounded-[1.5vw] bg-cyan-300 text-[3vw] font-black leading-none text-[#07151b] shadow-[0_.8vw_2.5vw_rgba(34,211,238,.25)]">
                 {state.answer.choice}
               </span>
               <h1 className="text-balance text-[2.5vw] font-black leading-[1.05] tracking-[-.045em]">

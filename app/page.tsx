@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   ArrowRight,
   Bot,
@@ -73,10 +72,10 @@ export default function Home() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link className="primary-cta" href="/play/MT2026">
+            <a className="primary-cta" href="/play/MT2026">
               방 코드 MT2026으로 입장
               <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
+            </a>
             <span className="text-sm text-muted-foreground">
               가입 없이 닉네임만 입력하면 됩니다.
             </span>
@@ -86,7 +85,7 @@ export default function Home() {
         <div className="grid gap-4">
           {roles.map(
             ({ icon: Icon, eyebrow, title, description, href, tone }) => (
-              <Link
+              <a
                 className={`group role-card role-${tone}`}
                 href={href}
                 key={title}
@@ -109,7 +108,7 @@ export default function Home() {
                   className="mt-2 size-5 shrink-0 text-white/35 transition group-hover:translate-x-1 group-hover:text-white"
                   aria-hidden="true"
                 />
-              </Link>
+              </a>
             ),
           )}
 

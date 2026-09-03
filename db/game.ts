@@ -298,6 +298,7 @@ function publicStatuses(status: GameStatus) {
 export async function getPublicState(
   roomCodeRaw: string,
   token?: string | null,
+  includePrivateLeaderboard = false,
 ): Promise<PublicGameState> {
   await ensureGameDatabase();
   const roomCode = normalizeRoomCode(roomCodeRaw);
@@ -358,7 +359,8 @@ export async function getPublicState(
     correctCount: Number(entry.correct_count),
     rank: index + 1,
   }));
-  const leaderboard = ['LEADERBOARD', 'FINISHED'].includes(room.status)
+  const leaderboard =
+    includePrivateLeaderboard || ['LEADERBOARD', 'FINISHED'].includes(room.status)
     ? completeLeaderboard
     : [];
 
@@ -580,7 +582,7 @@ export async function hostCommand(
     throw new GameError('지원하지 않는 사회자 명령입니다.', 400);
   }
 
-  return getPublicState(roomCode);
+  return getPublicState(roomCode, null, true);
 }
 
 async function generateAndScore(roomCode: string, questionNo: number) {

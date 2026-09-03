@@ -62,7 +62,9 @@ export async function GET(
   try {
     const { code } = await context.params;
     const token = request.headers.get('x-participant-token');
-    const state = await getPublicState(code, token);
+    const hostCode = request.headers.get('x-host-code');
+    if (hostCode) verifyHostCode(hostCode);
+    const state = await getPublicState(code, token, Boolean(hostCode));
     return NextResponse.json(state, {
       headers: { 'Cache-Control': 'no-store' },
     });

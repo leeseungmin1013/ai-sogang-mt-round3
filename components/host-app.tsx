@@ -32,15 +32,15 @@ const statusLabel: Record<string, string> = {
 };
 
 export function HostApp({ code }: { code: string }) {
+  const [hostCode, setHostCode] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
   const {
     state,
     error: stateError,
     loading,
     refresh,
     setState,
-  } = useGame(code);
-  const [hostCode, setHostCode] = useState('');
-  const [authenticated, setAuthenticated] = useState(false);
+  } = useGame(code, false, authenticated ? hostCode : '');
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [duration, setDuration] = useState(30);
@@ -332,7 +332,7 @@ export function HostApp({ code }: { code: string }) {
                   {question?.order !== 10 && (
                     <ControlButton
                       icon={FastForward}
-                      label="리더보드 없이 다음 문제"
+                      label="다음 문제로 바로 이동 · 순위 미공개"
                       onClick={() => command('next')}
                       busy={busy === 'next'}
                       tone="secondary"
