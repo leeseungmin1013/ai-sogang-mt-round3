@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Clock3, Crown, Send, Sparkles, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,14 +10,14 @@ import { gamePost, useGame } from '@/hooks/use-game';
 
 const SAVED_MESSAGE = '답변이 저장되었습니다. 마감 전까지 수정할 수 있어요.';
 const UPDATED_MESSAGE = '답변을 수정했습니다.';
-const UNCHANGED_MESSAGE = '변경된 답변이 없습니다.';
+const UNSAVED_MESSAGE = '수정한 내용이 아직 저장되지 않았어요.';
 
 function normalizeDraft(value: string) {
   return value.normalize('NFKC').replace(/\s+/g, ' ').trim();
 }
 
 function isSubmissionFeedback(message: string) {
-  return [SAVED_MESSAGE, UPDATED_MESSAGE, UNCHANGED_MESSAGE].includes(message);
+  return [SAVED_MESSAGE, UPDATED_MESSAGE].includes(message);
 }
 
 function useCountdown(closesAt: string | null | undefined) {
@@ -46,27 +46,32 @@ export function PlayerApp({ code }: { code: string }) {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const hydratedQuestion = useRef<number | null>(null);
   const remaining = useCountdown(state?.closesAt);
 
   useEffect(() => {
+    const questionOrder = state?.currentQuestion?.order ?? null;
+    if (questionOrder === null) {
+      hydratedQuestion.current = null;
+      return;
+    }
+    if (hydratedQuestion.current === questionOrder) return;
+    hydratedQuestion.current = questionOrder;
+
     if (state?.mySubmission) {
       setChoice(state.mySubmission.choice);
       setReason(state.mySubmission.reason);
-    } else if (state?.status === 'QUESTION_OPEN') {
+    } else {
       setChoice('');
       setReason('');
     }
-  }, [state?.currentQuestion?.order, state?.mySubmission, state?.status]);
+    setMessage('');
+  }, [state?.currentQuestion?.order, state?.mySubmission]);
 
-  useEffect(() => {
-    const reset = window.setTimeout(() => setMessage(''), 0);
-    return () => window.clearTimeout(reset);
-  }, [state?.currentQuestion?.order]);
-
-  const unchanged = Boolean(
+  const hasUnsavedChanges = Boolean(
     state?.mySubmission &&
-      choice === state.mySubmission.choice &&
-      normalizeDraft(reason) === state.mySubmission.reason,
+      (choice !== state.mySubmission.choice ||
+        normalizeDraft(reason) !== state.mySubmission.reason),
   );
 
   const canSubmit = useMemo(
@@ -74,8 +79,16 @@ export function PlayerApp({ code }: { code: string }) {
       choice &&
       reason.trim().length >= 5 &&
       reason.trim().length <= 120 &&
-      (!state?.closesAt || remaining > 0),
-    [choice, reason, remaining, state?.closesAt],
+      (!state?.closesAt || remaining > 0) &&
+      (!state?.mySubmission || hasUnsavedChanges),
+    [
+      choice,
+      reason,
+      remaining,
+      state?.closesAt,
+      state?.mySubmission,
+      hasUnsavedChanges,
+    ],
   );
 
   async function join() {
@@ -103,19 +116,17 @@ export function PlayerApp({ code }: { code: string }) {
       setMessage('다시 입장해 주세요.');
       return;
     }
-    if (unchanged) {
-      setMessage(UNCHANGED_MESSAGE);
-      return;
-    }
     const isUpdate = Boolean(state?.mySubmission);
+    const normalizedReason = normalizeDraft(reason);
     setBusy(true);
     setMessage('');
     try {
       await gamePost(
         code,
-        { action: 'submit', choice, reason: reason.trim() },
+        { action: 'submit', choice, reason: normalizedReason },
         { 'x-participant-token': token },
       );
+      setReason(normalizedReason);
       setMessage(isUpdate ? UPDATED_MESSAGE : SAVED_MESSAGE);
       await refresh();
     } catch (caught) {
@@ -233,7 +244,7 @@ export function PlayerApp({ code }: { code: string }) {
                   type="button"
                   onClick={() => {
                     setChoice(option.key);
-                    if (isSubmissionFeedback(message)) setMessage('');
+                    if (message) setMessage('');
                   }}
                   className={`answer-option ${choice === option.key ? 'selected' : ''}`}
                   aria-pressed={choice === option.key}
@@ -254,7 +265,7 @@ export function PlayerApp({ code }: { code: string }) {
               value={reason}
               onChange={(event) => {
                 setReason(event.target.value);
-                if (isSubmissionFeedback(message)) setMessage('');
+                if (message) setMessage('');
               }}
               maxLength={120}
               placeholder="AI의 사고방식을 예측해 한 문장으로 적어보세요."
@@ -273,15 +284,18 @@ export function PlayerApp({ code }: { code: string }) {
               {busy
                 ? '저장하는 중...'
                 : state.mySubmission
-                  ? '답변 수정하기'
+                  ? hasUnsavedChanges
+                    ? '수정사항 저장하기'
+                    : '답변 수정하기'
                   : '답변 제출하기'}
             </Button>
-            {isSubmissionFeedback(message) && (
+            {(isSubmissionFeedback(message) ||
+              (hasUnsavedChanges && !busy && !message)) && (
               <p
-                className={`mt-3 text-center text-sm font-bold ${message === UNCHANGED_MESSAGE ? 'text-amber-300' : 'text-[#d9ff52]'}`}
+                className={`mt-3 text-center text-sm font-bold ${hasUnsavedChanges && !message ? 'text-amber-300' : 'text-[#d9ff52]'}`}
                 role="status"
               >
-                {message}
+                {message || UNSAVED_MESSAGE}
               </p>
             )}
           </section>
