@@ -7,7 +7,6 @@ import {
   LoaderCircle,
   MessageSquareText,
   Sparkles,
-  Trophy,
   Users,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
