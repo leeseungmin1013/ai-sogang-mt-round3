@@ -16,6 +16,16 @@ Canva 발표 자료의 Round 3를 위한 실시간 AI 답변 예측 게임입니
 4. `npm run dev`
 5. 브라우저에서 `http://localhost:3000`을 엽니다.
 
+## 계정 없이 공개 실행
+
+Windows에서 다음 파일을 더블클릭합니다.
+
+- `MT_GAME_START.cmd`: 서버와 임시 HTTPS 터널을 시작하고 참가자 주소를 클립보드에 복사
+- `MT_GAME_STATUS.cmd`: 현재 공개 주소와 실행 상태 확인
+- `MT_GAME_STOP.cmd`: 서버와 터널 종료
+
+Quick Tunnel 주소는 실행할 때마다 변경되며, 공개 중에는 이 컴퓨터가 켜져 있어야 합니다.
+
 OpenAI 키가 없거나 호출이 실패하면 검수된 백업 답변과 로컬 문자열 유사도 계산으로 전체 게임 흐름이 계속 동작합니다. 실제 OpenAI 답변과 임베딩 채점을 사용하려면 서버 환경에 `OPENAI_API_KEY`가 필요합니다.
 
 ## 행사 운영 순서
