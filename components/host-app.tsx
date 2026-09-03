@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { ErrorBanner, GameHeader, LoadingGame } from '@/components/game-header';
 import { gamePost, useGame } from '@/hooks/use-game';
 import type { PublicGameState } from '@/lib/game-types';
@@ -44,6 +45,7 @@ export function HostApp({ code }: { code: string }) {
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [duration, setDuration] = useState(30);
+  const [untimed, setUntimed] = useState(false);
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem(`host-code:${code}`);
@@ -64,7 +66,11 @@ export function HostApp({ code }: { code: string }) {
     try {
       const next = await gamePost<PublicGameState>(
         code,
-        { action: 'host', command: name, durationSeconds: duration },
+        {
+          action: 'host',
+          command: name,
+          durationSeconds: untimed ? null : duration,
+        },
         { 'x-host-code': hostCode },
       );
       window.sessionStorage.setItem(`host-code:${code}`, hostCode);
@@ -255,24 +261,49 @@ export function HostApp({ code }: { code: string }) {
         <aside className="space-y-4">
           <div className="rounded-[30px] border border-white/10 bg-white/5 p-5">
             <h2 className="font-black">진행 컨트롤</h2>
-            <div className="mt-4 flex items-center justify-between rounded-2xl bg-black/20 p-3">
-              <span className="text-sm text-muted-foreground">답변 시간</span>
-              <div className="flex items-center gap-2">
-                <button
-                  className="mini-control"
-                  onClick={() => setDuration(Math.max(10, duration - 5))}
-                >
-                  −
-                </button>
-                <span className="w-11 text-center font-black tabular-nums">
-                  {duration}s
-                </span>
-                <button
-                  className="mini-control"
-                  onClick={() => setDuration(Math.min(120, duration + 5))}
-                >
-                  +
-                </button>
+            <div className="mt-4 rounded-2xl bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold">시간 제한 없음</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    사회자가 마감할 때까지 답변을 받습니다.
+                  </p>
+                </div>
+                <Switch
+                  checked={untimed}
+                  onCheckedChange={setUntimed}
+                  aria-label="답변 시간 제한 없음"
+                />
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-white/8 pt-3">
+                <span className="text-sm text-muted-foreground">답변 시간</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="mini-control"
+                    onClick={() => setDuration(Math.max(10, duration - 10))}
+                    disabled={untimed}
+                    aria-label="답변 시간 10초 줄이기"
+                  >
+                    −
+                  </button>
+                  <span
+                    className={`w-20 whitespace-nowrap text-center text-sm font-black tabular-nums ${untimed ? 'text-white/35' : ''}`}
+                  >
+                    {untimed
+                      ? '무제한'
+                      : duration >= 60
+                        ? `${Math.floor(duration / 60)}분${duration % 60 ? ` ${duration % 60}초` : ''}`
+                        : `${duration}초`}
+                  </span>
+                  <button
+                    className="mini-control"
+                    onClick={() => setDuration(Math.min(300, duration + 10))}
+                    disabled={untimed}
+                    aria-label="답변 시간 10초 늘리기"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
             <div className="mt-4 grid gap-2">

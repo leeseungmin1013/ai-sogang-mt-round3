@@ -146,11 +146,17 @@ export function ScreenApp({ code }: { code: string }) {
             <span className="rounded-full bg-primary/10 px-[1vw] py-[.45vw] text-[.85vw] font-black text-primary">
               QUESTION {question.order} / 10
             </span>
-            <span
-              className={`text-[2vw] font-black tabular-nums ${remaining <= 5 ? 'text-red-300' : 'text-[#d9ff52]'}`}
-            >
-              {remaining}s
-            </span>
+            {state.closesAt ? (
+              <span
+                className={`text-[2vw] font-black tabular-nums ${remaining <= 5 ? 'text-red-300' : 'text-[#d9ff52]'}`}
+              >
+                {remaining}초
+              </span>
+            ) : (
+              <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-[1.1vw] py-[.55vw] text-[1.05vw] font-black text-cyan-200">
+                시간 제한 없음 · 사회자 마감까지
+              </span>
+            )}
           </div>
           <h1 className="mt-[2.2vw] max-w-[88%] text-balance text-[3vw] font-black leading-tight tracking-[-.035em]">
             {question.prompt}

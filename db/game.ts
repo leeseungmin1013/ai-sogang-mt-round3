@@ -467,7 +467,7 @@ export function verifyHostCode(code: string | null) {
 export async function hostCommand(
   roomCodeRaw: string,
   command: string,
-  durationSeconds = 30,
+  durationSeconds: number | null = 30,
 ) {
   await ensureGameDatabase();
   const roomCode = normalizeRoomCode(roomCodeRaw);
@@ -483,9 +483,12 @@ export async function hostCommand(
       .run();
   } else if (command === 'start') {
     const next = room.current_question > 0 ? room.current_question : 1;
-    const closesAt = new Date(
-      Date.now() + Math.min(120, Math.max(10, durationSeconds)) * 1000,
-    ).toISOString();
+    const closesAt =
+      durationSeconds === null
+        ? null
+        : new Date(
+            Date.now() + Math.min(300, Math.max(10, durationSeconds)) * 1000,
+          ).toISOString();
     await database()
       .prepare(
         "UPDATE rooms SET status = 'QUESTION_OPEN', current_question = ?, closes_at = ?, state_version = state_version + 1, updated_at = ? WHERE code = ?",
@@ -536,9 +539,12 @@ export async function hostCommand(
         .bind(now, roomCode)
         .run();
     } else {
-      const closesAt = new Date(
-        Date.now() + Math.min(120, Math.max(10, durationSeconds)) * 1000,
-      ).toISOString();
+      const closesAt =
+        durationSeconds === null
+          ? null
+          : new Date(
+              Date.now() + Math.min(300, Math.max(10, durationSeconds)) * 1000,
+            ).toISOString();
       await database()
         .prepare(
           "UPDATE rooms SET status = 'QUESTION_OPEN', current_question = current_question + 1, closes_at = ?, state_version = state_version + 1, updated_at = ? WHERE code = ?",

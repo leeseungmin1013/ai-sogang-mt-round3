@@ -51,8 +51,8 @@ export function PlayerApp({ code }: { code: string }) {
       choice &&
       reason.trim().length >= 5 &&
       reason.trim().length <= 120 &&
-      remaining > 0,
-    [choice, reason, remaining],
+      (!state?.closesAt || remaining > 0),
+    [choice, reason, remaining, state?.closesAt],
   );
 
   async function join() {
@@ -183,11 +183,17 @@ export function PlayerApp({ code }: { code: string }) {
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary">
                 QUESTION {question.order} / 10
               </span>
-              <span
-                className={`flex items-center gap-1.5 font-black tabular-nums ${remaining <= 5 ? 'text-red-300' : 'text-[#d9ff52]'}`}
-              >
-                <Clock3 className="size-4" /> {remaining}s
-              </span>
+              {state.closesAt ? (
+                <span
+                  className={`flex items-center gap-1.5 font-black tabular-nums ${remaining <= 5 ? 'text-red-300' : 'text-[#d9ff52]'}`}
+                >
+                  <Clock3 className="size-4" /> {remaining}초
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-sm font-black text-cyan-300">
+                  <Clock3 className="size-4" /> 사회자 마감까지
+                </span>
+              )}
             </div>
             <h1 className="text-balance text-2xl font-black leading-tight tracking-[-.035em] sm:text-3xl">
               {question.prompt}

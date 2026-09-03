@@ -34,7 +34,7 @@ const hostSchema = z.object({
     'finish',
     'reset',
   ]),
-  durationSeconds: z.number().int().min(10).max(120).optional(),
+  durationSeconds: z.number().int().min(10).max(300).nullable().optional(),
 });
 
 function errorResponse(error: unknown) {
