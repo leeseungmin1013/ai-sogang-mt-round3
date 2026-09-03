@@ -8,6 +8,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { ErrorBanner, GameHeader, LoadingGame } from '@/components/game-header';
 import { gamePost, useGame } from '@/hooks/use-game';
 
+const SAVED_MESSAGE = '답변이 저장되었습니다. 마감 전까지 수정할 수 있어요.';
+const UPDATED_MESSAGE = '답변을 수정했습니다.';
+const UNCHANGED_MESSAGE = '변경된 답변이 없습니다.';
+
+function normalizeDraft(value: string) {
+  return value.normalize('NFKC').replace(/\s+/g, ' ').trim();
+}
+
+function isSubmissionFeedback(message: string) {
+  return [SAVED_MESSAGE, UPDATED_MESSAGE, UNCHANGED_MESSAGE].includes(message);
+}
+
 function useCountdown(closesAt: string | null | undefined) {
   const [remaining, setRemaining] = useState(0);
   useEffect(() => {
@@ -46,6 +58,17 @@ export function PlayerApp({ code }: { code: string }) {
     }
   }, [state?.currentQuestion?.order, state?.mySubmission, state?.status]);
 
+  useEffect(() => {
+    const reset = window.setTimeout(() => setMessage(''), 0);
+    return () => window.clearTimeout(reset);
+  }, [state?.currentQuestion?.order]);
+
+  const unchanged = Boolean(
+    state?.mySubmission &&
+      choice === state.mySubmission.choice &&
+      normalizeDraft(reason) === state.mySubmission.reason,
+  );
+
   const canSubmit = useMemo(
     () =>
       choice &&
@@ -80,6 +103,11 @@ export function PlayerApp({ code }: { code: string }) {
       setMessage('다시 입장해 주세요.');
       return;
     }
+    if (unchanged) {
+      setMessage(UNCHANGED_MESSAGE);
+      return;
+    }
+    const isUpdate = Boolean(state?.mySubmission);
     setBusy(true);
     setMessage('');
     try {
@@ -88,7 +116,7 @@ export function PlayerApp({ code }: { code: string }) {
         { action: 'submit', choice, reason: reason.trim() },
         { 'x-participant-token': token },
       );
-      setMessage('답변이 저장되었습니다. 마감 전까지 수정할 수 있어요.');
+      setMessage(isUpdate ? UPDATED_MESSAGE : SAVED_MESSAGE);
       await refresh();
     } catch (caught) {
       setMessage(
@@ -172,7 +200,7 @@ export function PlayerApp({ code }: { code: string }) {
       <GameHeader code={code} label={state.me.nickname} />
       <div className="mx-auto w-full max-w-xl px-5 pt-4">
         <ErrorBanner
-          message={stateError || (message.startsWith('답변이') ? '' : message)}
+          message={stateError || (isSubmissionFeedback(message) ? '' : message)}
         />
 
         {waiting && <WaitingCard participantCount={state.participantCount} />}
@@ -203,7 +231,10 @@ export function PlayerApp({ code }: { code: string }) {
                 <button
                   key={option.key}
                   type="button"
-                  onClick={() => setChoice(option.key)}
+                  onClick={() => {
+                    setChoice(option.key);
+                    if (isSubmissionFeedback(message)) setMessage('');
+                  }}
                   className={`answer-option ${choice === option.key ? 'selected' : ''}`}
                   aria-pressed={choice === option.key}
                 >
@@ -221,7 +252,10 @@ export function PlayerApp({ code }: { code: string }) {
             <Textarea
               id="reason"
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                if (isSubmissionFeedback(message)) setMessage('');
+              }}
               maxLength={120}
               placeholder="AI의 사고방식을 예측해 한 문장으로 적어보세요."
               className="mt-2 min-h-28 rounded-2xl bg-white/5 p-4 text-base leading-6"
@@ -242,10 +276,12 @@ export function PlayerApp({ code }: { code: string }) {
                   ? '답변 수정하기'
                   : '답변 제출하기'}
             </Button>
-            {(message || state.mySubmission) && (
-              <p className="mt-3 text-center text-sm text-[#d9ff52]">
-                {message ||
-                  '답변이 저장되었습니다. 마감 전까지 수정할 수 있어요.'}
+            {isSubmissionFeedback(message) && (
+              <p
+                className={`mt-3 text-center text-sm font-bold ${message === UNCHANGED_MESSAGE ? 'text-amber-300' : 'text-[#d9ff52]'}`}
+                role="status"
+              >
+                {message}
               </p>
             )}
           </section>
