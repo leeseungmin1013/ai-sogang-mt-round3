@@ -61,10 +61,12 @@ $cloudflared = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
 if (-not $cloudflared) {
   $fallbackPath = 'C:\Program Files (x86)\cloudflared\cloudflared.exe'
   if (Test-Path -LiteralPath $fallbackPath -PathType Leaf) {
-    $cloudflared = Get-Item -LiteralPath $fallbackPath
+    $cloudflaredPath = $fallbackPath
   } else {
     throw 'cloudflared를 찾을 수 없습니다. Cloudflare Tunnel 도구를 다시 설치해 주세요.'
   }
+} else {
+  $cloudflaredPath = $cloudflared.Source
 }
 
 Remove-Item -LiteralPath $serverLog, $serverErrorLog, $tunnelLog, $tunnelErrorLog -Force -ErrorAction SilentlyContinue
@@ -103,7 +105,7 @@ for ($tunnelAttempt = 1; $tunnelAttempt -le 3; $tunnelAttempt += 1) {
   $attemptTunnelErrorLog = Join-Path $runtimeDir ('tunnel-' + $tunnelAttempt + '-error.log')
   Remove-Item -LiteralPath $attemptTunnelLog, $attemptTunnelErrorLog -Force -ErrorAction SilentlyContinue
 
-  $tunnel = Start-Process -FilePath $cloudflared.FullName -ArgumentList @('tunnel', '--url', 'http://localhost:3000', '--http-host-header', 'localhost:3000', '--no-autoupdate') -WorkingDirectory $projectRoot -RedirectStandardOutput $attemptTunnelLog -RedirectStandardError $attemptTunnelErrorLog -WindowStyle Hidden -PassThru
+  $tunnel = Start-Process -FilePath $cloudflaredPath -ArgumentList @('tunnel', '--url', 'http://localhost:3000', '--http-host-header', 'localhost:3000', '--no-autoupdate') -WorkingDirectory $projectRoot -RedirectStandardOutput $attemptTunnelLog -RedirectStandardError $attemptTunnelErrorLog -WindowStyle Hidden -PassThru
 
   $candidateUrl = $null
   for ($attempt = 0; $attempt -lt 90; $attempt += 1) {

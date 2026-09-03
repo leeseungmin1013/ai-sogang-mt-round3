@@ -5,6 +5,7 @@ import {
   Bot,
   Crown,
   LoaderCircle,
+  MessageSquareText,
   Sparkles,
   Trophy,
   Users,
@@ -35,6 +36,7 @@ function useCountdown(closesAt: string | null | undefined) {
 export function ScreenApp({ code }: { code: string }) {
   const { state, loading } = useGame(code);
   const [joinUrl, setJoinUrl] = useState('');
+  const [resultPage, setResultPage] = useState(0);
   const remaining = useCountdown(state?.closesAt);
   useEffect(() => {
     const timer = window.setTimeout(
@@ -43,6 +45,26 @@ export function ScreenApp({ code }: { code: string }) {
     );
     return () => window.clearTimeout(timer);
   }, [code]);
+  useEffect(() => {
+    if (state?.status !== 'ANSWER_REVEALED') {
+      const reset = window.setTimeout(() => setResultPage(0), 0);
+      return () => window.clearTimeout(reset);
+    }
+    const pageCount = Math.max(1, Math.ceil(state.roundResults.length / 4));
+    const normalize = window.setTimeout(
+      () => setResultPage((page) => page % pageCount),
+      0,
+    );
+    if (pageCount === 1) return () => window.clearTimeout(normalize);
+    const timer = window.setInterval(
+      () => setResultPage((page) => (page + 1) % pageCount),
+      6000,
+    );
+    return () => {
+      window.clearTimeout(normalize);
+      window.clearInterval(timer);
+    };
+  }, [state?.status, state?.currentQuestion?.order, state?.roundResults.length]);
   if (loading || !state)
     return (
       <main className="screen-stage">
@@ -51,6 +73,14 @@ export function ScreenApp({ code }: { code: string }) {
     );
 
   const question = state.currentQuestion;
+  const resultPageCount = Math.max(
+    1,
+    Math.ceil(state.roundResults.length / 4),
+  );
+  const visibleRoundResults = state.roundResults.slice(
+    resultPage * 4,
+    resultPage * 4 + 4,
+  );
   return (
     <main className="screen-stage">
       <div className="screen-grid" />
@@ -178,8 +208,8 @@ export function ScreenApp({ code }: { code: string }) {
 
       {state.status === 'ANSWER_REVEALED' && state.answer && (
         <section className="screen-center">
-          <div className="grid grid-cols-[.95fr_1.05fr] gap-[2vw]">
-            <div className="rounded-[2vw] border border-primary/25 bg-primary/10 p-[2.2vw]">
+          <div className="grid grid-cols-[.78fr_1.22fr] gap-[1.5vw]">
+            <div className="rounded-[2vw] border border-primary/25 bg-primary/10 p-[2vw]">
               <p className="flex items-center gap-2 text-[1vw] font-black text-primary">
                 <Sparkles className="size-[1.1vw]" /> OPENAI의 선택
               </p>
@@ -196,29 +226,57 @@ export function ScreenApp({ code }: { code: string }) {
                   </p>
                 </div>
               </div>
+              <div className="mt-[1.6vw] rounded-[1.1vw] border border-white/8 bg-black/15 px-[1.1vw] py-[.9vw]">
+                <p className="text-[.72vw] font-black tracking-[.12em] text-white/35">
+                  채점 방식
+                </p>
+                <p className="mt-[.35vw] text-[.85vw] font-bold text-white/60">
+                  선택 일치 70점 + 이유 유사도 30점
+                </p>
+              </div>
             </div>
-            <div className="rounded-[2vw] border border-white/10 bg-white/5 p-[2vw]">
-              <p className="flex items-center gap-2 text-[1vw] font-black">
-                <Trophy className="size-[1.1vw] text-[#d9ff52]" /> 이번 문제 TOP
-                5
-              </p>
-              <div className="mt-[1vw] space-y-[.55vw]">
-                {state.roundResults.slice(0, 5).map((result) => (
+            <div className="rounded-[2vw] border border-white/10 bg-white/5 p-[1.5vw]">
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 text-[1vw] font-black">
+                  <MessageSquareText className="size-[1.1vw] text-[#d9ff52]" />
+                  참가자별 답변 · 점수
+                </p>
+                {resultPageCount > 1 && (
+                  <p className="text-[.72vw] font-black tabular-nums text-white/35">
+                    {resultPage + 1} / {resultPageCount} · 6초마다 전환
+                  </p>
+                )}
+              </div>
+              <div className="mt-[.8vw] space-y-[.45vw]">
+                {visibleRoundResults.map((result) => (
                   <div
-                    className="flex items-center gap-[.8vw] rounded-[.9vw] bg-black/15 px-[1vw] py-[.65vw]"
+                    className={`grid grid-cols-[1.4vw_7vw_2.1vw_minmax(0,1fr)_3.7vw_3.7vw_4vw] items-center gap-[.55vw] rounded-[.9vw] border px-[.8vw] py-[.55vw] ${result.rank <= 3 ? 'border-[#d9ff52]/15 bg-[#d9ff52]/6' : 'border-white/5 bg-black/15'}`}
                     key={result.participantId}
                   >
-                    <span className="w-[1.7vw] text-center text-[.9vw] font-black text-white/35">
+                    <span className="text-center text-[.8vw] font-black text-white/35">
                       {result.rank}
                     </span>
-                    <span className="flex-1 truncate text-[1vw] font-bold">
+                    <span className="truncate text-[.9vw] font-black">
                       {result.nickname}
                     </span>
-                    <span className="text-[1.05vw] font-black">
+                    <span className="grid size-[1.8vw] place-items-center rounded-[.55vw] bg-white/9 text-[.8vw] font-black">
+                      {result.choice}
+                    </span>
+                    <span className="line-clamp-2 text-[.72vw] leading-[1.35] text-white/55">
+                      {result.reason}
+                    </span>
+                    <ScorePart label="선택" score={result.choiceScore} />
+                    <ScorePart label="유사도" score={result.semanticScore} />
+                    <span className="text-right text-[1vw] font-black tabular-nums text-[#d9ff52]">
                       {result.totalScore}점
                     </span>
                   </div>
                 ))}
+                {!visibleRoundResults.length && (
+                  <div className="grid min-h-[12vw] place-items-center text-[.9vw] text-white/35">
+                    제출된 참가자 답변이 없습니다.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -263,5 +321,14 @@ export function ScreenApp({ code }: { code: string }) {
         </section>
       )}
     </main>
+  );
+}
+
+function ScorePart({ label, score }: { label: string; score: number }) {
+  return (
+    <span className="text-right">
+      <small className="block text-[.55vw] font-bold text-white/30">{label}</small>
+      <strong className="text-[.78vw] font-black tabular-nums">+{score}</strong>
+    </span>
   );
 }

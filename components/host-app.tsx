@@ -195,6 +195,46 @@ export function HostApp({ code }: { code: string }) {
                     </p>
                   </div>
                 )}
+                {state.roundResults.length > 0 && (
+                  <div className="mt-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-black">참가자별 답변 · 점수</p>
+                      <p className="text-xs text-white/35">
+                        총 {state.roundResults.length}명
+                      </p>
+                    </div>
+                    <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
+                      {state.roundResults.map((result) => (
+                        <div
+                          className="rounded-2xl border border-white/8 bg-black/15 p-3"
+                          key={result.participantId}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 text-center text-xs font-black text-white/35">
+                              {result.rank}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-sm font-black">
+                              {result.nickname}
+                            </span>
+                            <span className="grid size-7 place-items-center rounded-lg bg-white/8 text-xs font-black">
+                              {result.choice}
+                            </span>
+                            <span className="text-sm font-black tabular-nums text-[#d9ff52]">
+                              {result.totalScore}점
+                            </span>
+                          </div>
+                          <p className="mt-2 pl-7 text-xs leading-5 text-white/55">
+                            {result.reason}
+                          </p>
+                          <div className="mt-2 flex justify-end gap-3 text-[11px] font-bold text-white/40">
+                            <span>선택 +{result.choiceScore}</span>
+                            <span>이유 유사도 +{result.semanticScore}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="grid min-h-[310px] place-items-center text-center">
