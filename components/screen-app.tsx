@@ -207,76 +207,81 @@ export function ScreenApp({ code }: { code: string }) {
 
       {state.status === 'ANSWER_REVEALED' && state.answer && (
         <section className="screen-center">
-          <div className="grid grid-cols-[.78fr_1.22fr] gap-[1.5vw]">
-            <div className="rounded-[2vw] border border-primary/25 bg-primary/10 p-[2vw]">
-              <p className="flex items-center gap-2 text-[1vw] font-black text-primary">
-                <Sparkles className="size-[1.1vw]" /> OPENAI의 선택
+          <div className="relative overflow-hidden rounded-[2vw] border border-primary/40 bg-[linear-gradient(120deg,rgba(255,111,97,.2),rgba(139,92,246,.13)_65%,rgba(217,255,82,.08))] px-[2vw] py-[1.5vw] shadow-[0_0_5vw_rgba(255,111,97,.12)]">
+            <div className="absolute -right-[5vw] -top-[7vw] size-[18vw] rounded-full bg-primary/15 blur-[4vw]" />
+            <div className="relative flex items-center justify-between">
+              <p className="flex items-center gap-[.6vw] text-[1vw] font-black tracking-[.15em] text-primary">
+                <Sparkles className="size-[1.2vw]" /> AI FINAL ANSWER
               </p>
-              <div className="mt-[1.5vw] flex items-start gap-[1.3vw]">
-                <span className="grid size-[4.2vw] shrink-0 place-items-center rounded-[1.3vw] bg-primary text-[2vw] font-black text-primary-foreground">
-                  {state.answer.choice}
+              <div className="flex items-center gap-[.55vw]">
+                <span className="rounded-full border border-white/10 bg-black/20 px-[.8vw] py-[.38vw] text-[.7vw] font-black text-white/50">
+                  선택 70 + 이유 30
                 </span>
-                <div>
-                  <h1 className="text-[2vw] font-black">
-                    {state.answer.choiceText}
-                  </h1>
-                  <p className="mt-[1vw] text-[1.25vw] leading-relaxed text-white/65">
-                    {state.answer.reason}
-                  </p>
-                </div>
+                <span className="rounded-full bg-[#d9ff52] px-[.8vw] py-[.38vw] text-[.7vw] font-black text-[#101014]">
+                  {state.answer.source === 'live' ? 'LIVE API' : 'BACKUP'}
+                </span>
               </div>
-              <div className="mt-[1.6vw] rounded-[1.1vw] border border-white/8 bg-black/15 px-[1.1vw] py-[.9vw]">
-                <p className="text-[.72vw] font-black tracking-[.12em] text-white/35">
-                  채점 방식
+            </div>
+            <div className="relative mt-[1vw] grid grid-cols-[5.6vw_minmax(0,.9fr)_minmax(0,1.35fr)] items-center gap-[1.4vw]">
+              <span className="grid size-[5.6vw] place-items-center rounded-[1.5vw] bg-primary text-[3vw] font-black leading-none text-primary-foreground shadow-[0_.8vw_2.5vw_rgba(255,111,97,.28)]">
+                {state.answer.choice}
+              </span>
+              <h1 className="text-balance text-[2.5vw] font-black leading-[1.05] tracking-[-.045em]">
+                {state.answer.choiceText}
+              </h1>
+              <div className="border-l border-white/15 pl-[1.4vw]">
+                <p className="text-[.7vw] font-black tracking-[.14em] text-white/35">
+                  AI가 선택한 이유
                 </p>
-                <p className="mt-[.35vw] text-[.85vw] font-bold text-white/60">
-                  선택 일치 70점 + 이유 유사도 30점
+                <p className="mt-[.45vw] text-[1.25vw] font-bold leading-[1.45] text-white/85">
+                  “{state.answer.reason}”
                 </p>
               </div>
             </div>
-            <div className="rounded-[2vw] border border-white/10 bg-white/5 p-[1.5vw]">
-              <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-[1vw] font-black">
-                  <MessageSquareText className="size-[1.1vw] text-[#d9ff52]" />
-                  참가자별 답변 · 점수
+          </div>
+
+          <div className="mt-[1.1vw] rounded-[1.7vw] border border-white/10 bg-white/5 p-[1.25vw]">
+            <div className="flex items-center justify-between">
+              <p className="flex items-center gap-2 text-[.9vw] font-black">
+                <MessageSquareText className="size-[1vw] text-[#d9ff52]" />
+                참가자별 답변 · 점수
+              </p>
+              {resultPageCount > 1 && (
+                <p className="text-[.68vw] font-black tabular-nums text-white/35">
+                  {resultPage + 1} / {resultPageCount} · 6초마다 전환
                 </p>
-                {resultPageCount > 1 && (
-                  <p className="text-[.72vw] font-black tabular-nums text-white/35">
-                    {resultPage + 1} / {resultPageCount} · 6초마다 전환
-                  </p>
-                )}
-              </div>
-              <div className="mt-[.8vw] space-y-[.45vw]">
-                {visibleRoundResults.map((result) => (
-                  <div
-                    className={`grid grid-cols-[1.4vw_7vw_2.1vw_minmax(0,1fr)_3.7vw_3.7vw_4vw] items-center gap-[.55vw] rounded-[.9vw] border px-[.8vw] py-[.55vw] ${result.rank <= 3 ? 'border-[#d9ff52]/15 bg-[#d9ff52]/6' : 'border-white/5 bg-black/15'}`}
-                    key={result.participantId}
-                  >
-                    <span className="text-center text-[.8vw] font-black text-white/35">
-                      {result.rank}
-                    </span>
-                    <span className="truncate text-[.9vw] font-black">
-                      {result.nickname}
-                    </span>
-                    <span className="grid size-[1.8vw] place-items-center rounded-[.55vw] bg-white/9 text-[.8vw] font-black">
-                      {result.choice}
-                    </span>
-                    <span className="line-clamp-2 text-[.72vw] leading-[1.35] text-white/55">
-                      {result.reason}
-                    </span>
-                    <ScorePart label="선택" score={result.choiceScore} />
-                    <ScorePart label="유사도" score={result.semanticScore} />
-                    <span className="text-right text-[1vw] font-black tabular-nums text-[#d9ff52]">
-                      {result.totalScore}점
-                    </span>
-                  </div>
-                ))}
-                {!visibleRoundResults.length && (
-                  <div className="grid min-h-[12vw] place-items-center text-[.9vw] text-white/35">
-                    제출된 참가자 답변이 없습니다.
-                  </div>
-                )}
-              </div>
+              )}
+            </div>
+            <div className="mt-[.65vw] space-y-[.38vw]">
+              {visibleRoundResults.map((result) => (
+                <div
+                  className={`grid grid-cols-[1.4vw_7vw_2.1vw_minmax(0,1fr)_3.7vw_3.7vw_4vw] items-center gap-[.55vw] rounded-[.8vw] border px-[.8vw] py-[.42vw] ${result.rank <= 3 ? 'border-[#d9ff52]/15 bg-[#d9ff52]/6' : 'border-white/5 bg-black/15'}`}
+                  key={result.participantId}
+                >
+                  <span className="text-center text-[.78vw] font-black text-white/35">
+                    {result.rank}
+                  </span>
+                  <span className="truncate text-[.85vw] font-black">
+                    {result.nickname}
+                  </span>
+                  <span className="grid size-[1.65vw] place-items-center rounded-[.5vw] bg-white/9 text-[.75vw] font-black">
+                    {result.choice}
+                  </span>
+                  <span className="line-clamp-1 text-[.7vw] leading-[1.35] text-white/55">
+                    {result.reason}
+                  </span>
+                  <ScorePart label="선택" score={result.choiceScore} />
+                  <ScorePart label="유사도" score={result.semanticScore} />
+                  <span className="text-right text-[.95vw] font-black tabular-nums text-[#d9ff52]">
+                    {result.totalScore}점
+                  </span>
+                </div>
+              ))}
+              {!visibleRoundResults.length && (
+                <div className="grid min-h-[8vw] place-items-center text-[.85vw] text-white/35">
+                  제출된 참가자 답변이 없습니다.
+                </div>
+              )}
             </div>
           </div>
         </section>

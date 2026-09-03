@@ -312,18 +312,33 @@ export function HostApp({ code }: { code: string }) {
               {state.status === 'ANSWER_READY' && (
                 <ControlButton
                   icon={Eye}
-                  label="AI 답변과 TOP 5 공개"
+                  label="AI 답변과 참가자 결과 공개"
                   onClick={() => command('reveal')}
                   busy={busy === 'reveal'}
                 />
               )}
               {state.status === 'ANSWER_REVEALED' && (
-                <ControlButton
-                  icon={Trophy}
-                  label="누적 리더보드 공개"
-                  onClick={() => command('leaderboard')}
-                  busy={busy === 'leaderboard'}
-                />
+                <>
+                  <ControlButton
+                    icon={Trophy}
+                    label={
+                      question?.order === 10
+                        ? '최종 리더보드 공개'
+                        : '누적 리더보드 공개'
+                    }
+                    onClick={() => command('leaderboard')}
+                    busy={busy === 'leaderboard'}
+                  />
+                  {question?.order !== 10 && (
+                    <ControlButton
+                      icon={FastForward}
+                      label="리더보드 없이 다음 문제"
+                      onClick={() => command('next')}
+                      busy={busy === 'next'}
+                      tone="secondary"
+                    />
+                  )}
+                </>
               )}
               {state.status === 'LEADERBOARD' && (
                 <ControlButton
@@ -366,7 +381,7 @@ export function HostApp({ code }: { code: string }) {
               ))}
               {!state.leaderboard.length && (
                 <p className="py-4 text-center text-sm text-muted-foreground">
-                  아직 참가자가 없습니다.
+                  리더보드를 공개하면 여기에 표시됩니다.
                 </p>
               )}
             </div>
@@ -402,7 +417,7 @@ function ControlButton({
     <Button
       onClick={() => void onClick()}
       disabled={busy}
-      className={`h-13 w-full rounded-2xl text-base font-black ${tone === 'danger' ? 'bg-red-400 text-red-950 hover:bg-red-300' : ''}`}
+      className={`h-13 w-full rounded-2xl text-base font-black ${tone === 'danger' ? 'bg-red-400 text-red-950 hover:bg-red-300' : tone === 'secondary' ? 'border border-white/12 bg-white/5 text-white hover:bg-white/10' : ''}`}
     >
       <Icon className="size-4" />
       {busy ? '처리하는 중...' : label}

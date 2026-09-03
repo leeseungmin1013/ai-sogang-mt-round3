@@ -525,6 +525,8 @@ export async function hostCommand(
     if (!['ANSWER_REVEALED', 'LEADERBOARD'].includes(room.status))
       throw new GameError('현재 문제 결과를 먼저 공개해 주세요.', 409);
     if (room.current_question >= QUESTIONS.length) {
+      if (room.status !== 'LEADERBOARD')
+        throw new GameError('마지막 문제에서는 최종 리더보드를 먼저 공개해 주세요.', 409);
       await database()
         .prepare(
           "UPDATE rooms SET status = 'FINISHED', closes_at = NULL, state_version = state_version + 1, updated_at = ? WHERE code = ?",
@@ -543,6 +545,11 @@ export async function hostCommand(
         .run();
     }
   } else if (command === 'finish') {
+    if (
+      room.current_question < QUESTIONS.length ||
+      room.status !== 'LEADERBOARD'
+    )
+      throw new GameError('최종 리더보드를 공개한 뒤 게임을 종료해 주세요.', 409);
     await database()
       .prepare(
         "UPDATE rooms SET status = 'FINISHED', closes_at = NULL, state_version = state_version + 1, updated_at = ? WHERE code = ?",
