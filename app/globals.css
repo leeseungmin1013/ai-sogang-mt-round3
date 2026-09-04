@@ -286,7 +286,27 @@ a {
   min-height: calc(100vh - 10vh);
   padding: 6vh 7vw 7vh;
 }
+.round-confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: round-confetti-burst 2.2s ease-out both;
+}
+@keyframes round-confetti-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(0); }
+  12% { opacity: 1; }
+  65% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate(var(--burst-x), var(--burst-y)) rotate(var(--burst-turn)) scale(.5);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .round-confetti { display: none; }
   *,
   *::before,
   *::after {

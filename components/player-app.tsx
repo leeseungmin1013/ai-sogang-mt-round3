@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ErrorBanner, GameHeader, LoadingGame } from '@/components/game-header';
 import { gamePost, useGame } from '@/hooks/use-game';
+import { RoundCelebration } from '@/components/round-celebration';
 
 const SAVED_MESSAGE = '답변이 저장되었습니다. 마감 전까지 수정할 수 있어요.';
 const UPDATED_MESSAGE = '답변을 수정했습니다.';
@@ -310,6 +311,9 @@ export function PlayerApp({ code }: { code: string }) {
 
         {revealed && question && (
           <section>
+            {state.myResult?.rank === 1 && (
+              <RoundCelebration key={`${code}:${question.order}`} />
+            )}
             <div className="rounded-[28px] border border-primary/25 bg-primary/10 p-5 sm:p-7">
               <div className="flex items-center gap-2 text-sm font-black text-primary">
                 <Sparkles className="size-4" /> OPENAI의 선택
